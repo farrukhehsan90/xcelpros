@@ -2,14 +2,14 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
 const passport = require("passport");
-const bcrypt = require('bcrypt');
-const jwt=require('jsonwebtoken');
-
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const validate=require('../../utils/Validator');
 
 router.post("/", (req, res) => {
-  const { firstName, lastName, email, phone,password } = req.body;
+  const { firstName, lastName, email, phone, password } = req.body;
 
-  User.sync({force:true}).then(() => {
+  User.sync().then(() => {
     User.create({
       firstName,
       lastName,
@@ -39,101 +39,110 @@ router.get("/", (req, res) => {
     .catch(err => res.json(err));
 });
 
-router.post('/register',(req,res)=>{
+router.post("/register", (req, res) => {
+  const {isValid,errors}=validate(req.body);
+  const { email, password, firstName, lastName, phone, dateOfBirth } = req.body;
 
-  const {email,password,firstName,lastName,phone,dateOfBirth}=req.body;
 
-  console.log('req.body',req.body);
+  if(!isValid){
+    return res.status(400).json({success:false,errors});
+  }
+
+
   User.findAll({
-    where:{
+    where: {
       email
     }
   })
-  .then(user=>{
-    console.log('user',user);
-    if(user.length>0){
-      throw 'User already exists';
-    }
+    .then(user => {
+      if (user.length > 0) {
+        errors.email="User already exists";
+        return res.status(400).json({success:false,errors});
+      }
 
-    bcrypt.hash(password,10)
-      .then(hash=>{
-        const newUser={
-          firstName,
-          lastName,
-          email,
-          phone,
-          password:hash,
-          dateOfBirth:Date.now()
-        };
-        User.sync().then(()=>{
-          User.create(newUser)
-          .then(user=>{
-            console.log('user register',user);
-            jwt.sign(newUser,'secret',(err,token)=>{
+      bcrypt
+        .hash(password, 10)
+        .then(hash => {
+          const newUser = {
+            firstName,
+            lastName,
+            email,
+            phone:'9999999999',
+            password: hash,
+            dateOfBirth: Date.now()
+          };
+          User.sync().then(() => {
+            User.create(newUser).then(user => {
+              jwt.sign(newUser, "secret", (err, token) => {
+                if (err) {
+                  errors.err=err;
+                  return res.status(400).json({success:false,errors});
+                }
 
-              if(err){
-                throw err;
-              }
-
-              return res.status(200).json({
-                success:true,
-                token:`Bearer ${token}`
+                return res.status(200).json({
+                  success: true,
+                  token: `Bearer ${token}`
+                });
               });
-
-
-            })
-          })
-        })
-          
-          
-        })
-      .catch(err=>res.status(400).json(err));
-
-  })
-  .catch(err=>res.status(400).json({success:false,err}));
-
-
-})
-
-router.post('/login',(req,res)=>{
-  const {email,password}=req.body;
-  console.log('req.body',req.body);
-  User.findAll({
-    where:{
-      email
-    }
-  })
-  .then(user=>{
-    // console.log('user',user);
-    if(user.length===0){
-      throw 'Incorrect email or password';
-    }
-    console.log('user[0].users',user[0].dataValues);
-    bcrypt.compare(password,user[0].dataValues.password)
-      .then(isAMatch=>{
-        console.log('isAMatch',isAMatch);
-        if(!isAMatch){
-          throw 'Incorrect email or password';
-        }
-        const {id,email,firstName,lastName,phone,dateOfBirth}=user[0].dataValues;
-
-        jwt.sign({id,email,firstName,lastName,phone,dateOfBirth},'secret',{expiresIn:60},(err,token)=>{
-          if(err){
-            throw err;
-          }
-          
-          return res.status(200).json({
-            success:true,
-            token:`Bearer ${token}`
+            });
           });
         })
+        .catch(err => res.status(400).json({success:false,errors}));
+    })
+    .catch(err => res.status(400).json({ success: false, errors }));
+});
 
-      })
+router.post("/login", (req, res) => {
 
+  const {isValid,errors}=validate(req.body);
+  
+  if(!isValid){
+    return res.status(400).json({success:false,errors});
+  }
 
+  const { email, password } = req.body;
+  User.findAll({
+    where: {
+      email
+    }
   })
-  .catch(err=>res.status(400).json({success:false,err}));
+    .then(user => {
+      if (user.length === 0) {
+        errors.email='No user found';
+            return res.status(400).json({success:false,errors});
+      }
+      bcrypt.compare(password, user[0].dataValues.password).then(isAMatch => {
+        if (!isAMatch) {
+          errors.password='Incorrect Password';
+            return res.status(400).json({success:false,errors});
+        }
+        const {
+          id,
+          email,
+          firstName,
+          lastName,
+          phone,
+          dateOfBirth
+        } = user[0].dataValues;
 
+        jwt.sign(
+          { id, email, firstName, lastName, phone, dateOfBirth },
+          "secret",
+          { expiresIn: 60 },
+          (err, token) => {
+            if (err) {
+              throw err;
+            }
+
+            return res.status(200).json({
+              success: true,
+              token: `Bearer ${token}`
+            });
+          }
+        );
+      });
+    })
+    .catch(err => res.status(400).json({success:false,errors}));
 });
 
 router.get(
@@ -144,16 +153,17 @@ router.get(
   }
 );
 
-router.delete('/',(req,res)=>{
+router.delete("/", (req, res) => {
   User.destroy({
-    where:{
-      firstName:"Farrukh"
+    where: {
+      firstName: "Farrukh"
     }
   })
-  .then(user=>{console.log('done')
-  return res.json({done});
-})
-  .catch(err=>console.log('err'));
-})
+    .then(user => {
+      console.log("done");
+      return res.json({ done });
+    })
+    .catch(err => console.log("err"));
+});
 
 module.exports = router;

@@ -10,11 +10,8 @@ opts.jwtFromRequest=ExtractJWT.fromAuthHeaderAsBearerToken();
 
 
 module.exports=passport=>{
-    console.log('test');
     return passport.use(new JWTStrategy(opts,(payload,done)=>{
-        console.log('payload',payload);
         const {id,email}=payload;
-        console.log('email',email);
         return User.findAll({
         where:{
             email

@@ -1,29 +1,87 @@
-import React from 'react';
-import { AppBar, Toolbar } from '@material-ui/core';
-import logo from '../../assets/logo.png';
-import Timer from './Timer';
-import {connect} from 'react-redux';
-import {withRouter} from 'react-router-dom';
-import { SupervisedUserCircleOutlined } from '@material-ui/icons';
-import { logout } from '../../actions/userActions';
+import React from "react";
+import clsx from "clsx";
+import { AppBar, Toolbar, Typography } from "@material-ui/core";
+import Timer from "./Timer";
+import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
+import { logout } from "../../actions/userActions";
 
-const Header = ({history}) => {
-    return (
-        <React.Fragment>
-        <AppBar>
-            <Toolbar>
-                <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                    <img src={logo} style={{width:'3%'}}/>
-                    <div style={{width:'10%',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                    <Timer/>
-                    <SupervisedUserCircleOutlined onClick={()=>{logout();return history.push('/login')}} style={{color:'#fff',fontSize:22,cursor:'pointer'}}/>
-                    </div>
-                </div>
-            </Toolbar>
-        </AppBar>
-        <Toolbar/>
-        </React.Fragment>
-    );
-}
+const Header = ({
+  history,
+  appBar,
+  appBarShift,
+  open,
+  drawerSpacing,
+  users: { avatar }
+}) => {
+  return (
+    <AppBar
+      position="fixed"
+      className={clsx(appBar, {
+        [appBarShift]: open
+      })}
+    >
+      <Toolbar>
+        <div style={styles.headerMain}>
+          <Typography
+            style={{
+              paddingLeft: drawerSpacing,
+              color: "#000",
+              textTransform: "uppercase",
+              fontWeight: "600",
+              fontSize: "3vw"
+            }}
+          >
+            Dashboard
+          </Typography>
+          <div style={styles.headerContainer}>
+            <div style={styles.avatarContainer}>
+              <Timer />
+              <img
+                alt="avatar"
+                src={avatar}
+                title="Logout"
+                onClick={() => {
+                  logout();
+                  return history.push("/login");
+                }}
+                style={styles.avatarImage}
+              />
+            </div>
+          </div>
+        </div>
+      </Toolbar>
+    </AppBar>
+  );
+};
 
-export default connect(null,{logout})(withRouter(Header));
+const styles = {
+  headerMain: {
+    width: "100%",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  avatarImage: {
+    paddingLeft: "2%",
+    width: "17%",
+    cursor: "pointer",
+    borderRadius: "100px"
+  },
+  avatarContainer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end"
+  },
+  headerContainer: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
+  }
+};
+
+const mapStateToProps = state => ({
+  users: state.users
+});
+
+export default connect(mapStateToProps, { logout })(withRouter(Header));

@@ -1,5 +1,12 @@
 import React, { Component } from "react";
-import { Table, TableRow, TableCell, TableHead, TableBody, Toolbar } from "@material-ui/core";
+import {
+  Table,
+  TableRow,
+  TableCell,
+  TableHead,
+  TableBody,
+  Toolbar
+} from "@material-ui/core";
 import { connect } from "react-redux";
 import { getUsers } from "../../actions/userActions";
 import Header from "../common/Header";
@@ -22,7 +29,7 @@ class Dashboard extends Component {
   }
 
   render() {
-      const {user,loading}=this.props.users;
+    const { user, loading } = this.props.users;
     const { users } = this.state;
 
     let tableContent;
@@ -30,35 +37,35 @@ class Dashboard extends Component {
     if (users.length > 0) {
       tableContent = users.map(user => (
         <TableRow>
-    <TableCell>{user.firstName}</TableCell>
-    <TableCell>{user.lastName}</TableCell>
-    <TableCell>{user.email}</TableCell>
-    <TableCell>{user.phone}</TableCell>
+          <TableCell>{user.firstName}</TableCell>
+          <TableCell>{user.lastName}</TableCell>
+          <TableCell>{user.email}</TableCell>
+          <TableCell>{user.phone}</TableCell>
         </TableRow>
       ));
     }
 
     return (
       <div>
-          {loading || users.length===0?<Spinner/>:
+        {loading || users.length === 0 ? (
+          <Spinner />
+        ) : (
           <React.Fragment>
+            {/* <Header/> */}
 
-          <Header/>
-          
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>First Name</TableCell>
-              <TableCell>Last Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Phone</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-              {tableContent}
-          </TableBody>
-        </Table>
-          </React.Fragment>}
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>First Name</TableCell>
+                  <TableCell>Last Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Phone</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>{tableContent}</TableBody>
+            </Table>
+          </React.Fragment>
+        )}
       </div>
     );
   }

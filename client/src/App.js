@@ -3,15 +3,15 @@ import {Provider} from 'react-redux';
 import {BrowserRouter as Router,Route,Switch} from 'react-router-dom';
 import decode from 'jwt-decode';
 import store from './store/store';
-import Login from './components/login/Login';
-import Dashboard from './components/dashboard/Dashboard';
 import FourZeroFour from './components/404/FourZeroFour';
 import PrivateRoute from './components/common/PrivateRoute';
 import {setCurrentUser,logout} from './actions/userActions';
 import setAuthToken from './utils/fetcher';
+import NewLogin from './components/login/NewLogin';
+import Layout from './components/layout/Layout';
+import NewDashboard from './components/dashboard/NewDashboard';
 
 if(localStorage.token){
-  console.log('localStorage.token',localStorage.token);
   setAuthToken(localStorage.token);
 
   const decoded=decode(localStorage.token);
@@ -19,8 +19,6 @@ if(localStorage.token){
 
   const currentTime= Date.now() / 1000;
 
-  console.log(currentTime);
-  console.log(decoded.exp);
 
   if(decoded.exp < currentTime){
 
@@ -36,11 +34,13 @@ function App() {
   return (
     <Provider store={store}>
       <Router>
+          <Layout>
         <Switch>
-        <PrivateRoute exact path="/" component={Dashboard}/>
-        <Route exact path="/login" component={Login}/>
+        <PrivateRoute exact path="/" component={NewDashboard}/>
+        <Route exact path="/login" component={NewLogin}/>
         <Route component={FourZeroFour}/>
         </Switch>
+        </Layout>
       </Router>
     </Provider>
   );
